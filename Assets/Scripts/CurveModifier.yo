@@ -1,0 +1,59 @@
+using UnityEngine;
+using TMPro;
+using System.Linq;
+
+[ExecuteAlways]
+[RequireComponent(typeof(TextMeshPro))]
+public class CurveModifier : MonoBehaviour
+{
+    public float curveRadius = 5f;
+
+    private TextMeshPro textMesh;
+
+    private void Start()
+    {
+        textMesh = GetComponesnt<TextMeshPro>();
+        UpdateCurve();
+    }
+
+    private void Update()
+    {
+        // Uncomment the line below if you want to update the curve in real-time during gameplay.
+        // UpdateCurve();
+    }
+
+    private void UpdateCurve()
+    {
+        if (textMesh == null)
+            return;
+
+        // Get the center position of the sphere or the object the text should curve around.
+        Vector3 centerPosition = transform.position;
+
+        // Get the text characters as separate game objects.
+        Transform[] characterTransforms = textMesh.textInfo.characterInfo
+            .Select(character => character.characterMesh.transform)
+            .ToArray();
+
+        // Calculate the angle increment for each character based on the curve radius.
+        float angleIncrement = 360f / characterTransforms.Length;
+
+        // Rotate each character around the sphere.
+        for (int i = 0; i < characterTransforms.Length; i++)
+        {
+            Transform characterTransform = characterTransforms[i];
+            float angle = i * angleIncrement;
+
+            // Calculate the position of the character along the curve.
+            float xPos = Mathf.Cos(angle * Mathf.Deg2Rad) * curveRadius;
+            float yPos = Mathf.Sin(angle * Mathf.Deg2Rad) * curveRadius;
+
+            // Set the position of the character relative to the center position.
+            characterTransform.localPosition = new Vector3(xPos, yPos, 0f);
+
+            // Calculate the rotation of the character to face the center position.
+            Quaternion rotation = Quaternion.LookRotation(centerPosition - characterTransform.position, Vector3.back);
+            characterTransform.rotation = rotation;
+        }
+    }
+}
